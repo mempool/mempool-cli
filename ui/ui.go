@@ -222,10 +222,8 @@ func (ui *UI) info(g *gocui.Gui, x, y int) error {
 	}
 
 	fmt.Fprintf(v, "%s %s, %s %s",
-		red("Unconfirmed Txs: "),
-		white("%d", info.Size),
-		blue("Mempool size"),
-		white("%s (%d block/s)", fmtSize(mSize), len(ui.state.projected)),
+		red("Unconfirmed Txs: "), white("%d", info.Size),
+		blue("Mempool size"), white("%s (%d block/s)", fmtSize(mSize), len(ui.state.projected)),
 	)
 	return nil
 }
@@ -318,7 +316,7 @@ func fmtSize(s int) string {
 		return fmt.Sprintf("%dkB", ceil(m))
 	}
 	m := float64(s) / (1000.0 * 1000.0)
-	return fmt.Sprintf("%fMB", ceil(m))
+	return fmt.Sprintf("%dMB", ceil(m))
 }
 
 func (ui *UI) click(g *gocui.Gui, v *gocui.View) error {
