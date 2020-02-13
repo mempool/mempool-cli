@@ -39,6 +39,8 @@ func New() (*UI, error) {
 	gui.SetKeybinding("", 'q', gocui.ModNone, quit)
 	gui.SetKeybinding("", gocui.MouseLeft, gocui.ModNone, ui.click)
 	gui.Mouse = true
+	gui.Highlight = true
+	gui.SelFgColor = gocui.ColorWhite
 
 	return ui, nil
 }
@@ -82,7 +84,7 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 	x, y := g.Size()
 
 	// whether or not use vertical layout
-	vertical := BLOCK_WIDTH*5 > x
+	vertical := BLOCK_WIDTH*8 > x
 
 	// draw projected blocks (mempool)
 	for i, _ := range ui.state.projected {
@@ -182,12 +184,18 @@ var (
 	yellow = color.New(color.FgYellow).SprintfFunc()
 )
 
+func ceil(f float64) int {
+	return int(
+		math.Ceil(f),
+	)
+}
+
 func (ui *UI) printProjectedBlock(n int) []byte {
 	block := ui.state.projected[n]
 
 	lines := []string{
-		white("   ~%.3f sat/vB       ", block.MedianFee),
-		yellow("  %.0f - %.0f sat/vB     ", math.Ceil(block.MinFee), math.Ceil(block.MaxFee)),
+		white("   ~%d sat/vB       ", ceil(block.MedianFee)),
+		yellow("  %d - %d sat/vB     ", ceil(block.MinFee), ceil(block.MaxFee)),
 		"                       ",
 		white("     %.2f MB              ", float64(block.BlockSize)/(1000*1000)),
 		white(" %4d transactions     ", block.NTx),
@@ -222,8 +230,8 @@ func (ui *UI) printBlock(n int) []byte {
 
 	ago := time.Now().Unix() - int64(block.Time)
 	lines := []string{
-		white("   ~%.3f sat/Vb     ", block.MedianFee),
-		yellow("  %.0f - %.0f sat/vB     ", math.Ceil(block.MinFee), math.Ceil(block.MaxFee)),
+		white("    ~%d sat/Vb      ", ceil(block.MedianFee)),
+		yellow("  %d - %d sat/vB     ", ceil(block.MinFee), ceil(block.MaxFee)),
 		"                       ",
 		white("     %.2f MB              ", float64(block.Size)/(1000*1000)),
 		white(" %4d transactions     ", block.NTx),
@@ -256,5 +264,6 @@ func fmtSeconds(s int64) string {
 }
 
 func (ui *UI) click(g *gocui.Gui, v *gocui.View) error {
-	return nil
+	_, err := g.SetCurrentView(v.Name())
+	return err
 }
