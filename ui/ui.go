@@ -33,10 +33,12 @@ func New() (*UI, error) {
 		return nil, err
 	}
 
+	ui := &UI{gui: gui}
+	gui.SetManager(ui)
 	gui.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit)
 	gui.SetKeybinding("", 'q', gocui.ModNone, quit)
 
-	return &UI{gui: gui}, nil
+	return ui, nil
 }
 
 func quit(*gocui.Gui, *gocui.View) error { return gocui.ErrQuit }
@@ -71,12 +73,10 @@ func (ui *UI) Render(resp *client.Response) {
 		ui.state.projected = bs
 	}
 
-	ui.gui.Update(func(g *gocui.Gui) error {
-		return ui.update(g)
-	})
+	ui.gui.Update(ui.Layout)
 }
 
-func (ui *UI) update(g *gocui.Gui) error {
+func (ui *UI) Layout(g *gocui.Gui) error {
 	x, y := g.Size()
 
 	// whether or not use vertical layout
