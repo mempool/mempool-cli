@@ -15,6 +15,19 @@ type Block struct {
 	MedianFee float64 `json:"medianFee"`
 }
 
+type ProjectedBlock struct {
+	BlockSize    int     `json:"blockSize"`
+	BlockWeight  int     `json:"blockWeight"`
+	NTx          int     `json:"nTx"`
+	MinFee       float64 `json:"minFee"`
+	MaxFee       float64 `json:"maxFee"`
+	MinWeigthFee float64 `json:"minWeigthFee"`
+	MaxWeigthFee float64 `json:"maxWeigthFee"`
+	MedianFee    float64 `json:"medianFee"`
+	Fees         float64 `json:"fees"`
+	HasMyTx      bool    `json:"hasMytx"`
+}
+
 type Response struct {
 	MempoolInfo struct {
 		Size  int `json:"size"`
@@ -24,18 +37,7 @@ type Response struct {
 	Block  Block   `json:"block"`
 	Blocks []Block `json:"blocks"`
 
-	ProjectedBlocks []struct {
-		BlockSize    int     `json:"blockSize"`
-		BlockWeight  int     `json:"blockWeight"`
-		NTx          int     `json:"nTx"`
-		MinFee       float64 `json:"minFee"`
-		MaxFee       float64 `json:"maxFee"`
-		MinWeigthFee float64 `json:"minWeigthFee"`
-		MaxWeigthFee float64 `json:"maxWeigthFee"`
-		MedianFee    float64 `json:"medianFee"`
-		Fees         float64 `json:"fees"`
-		HasMyTx      bool    `json:"hasMytx"`
-	} `json:"projectedBlocks"`
+	ProjectedBlocks []ProjectedBlock `json:"projectedBlocks"`
 
 	TxPerSecond     float64 `json:"txPerSecond"`
 	VBytesPerSecond int     `json:"vBytesPerSecond"`

@@ -17,8 +17,14 @@ const (
 	BLOCKS_TO_DISPLAY = 4
 )
 
+type state struct {
+	blocks    []client.Block
+	projected []client.ProjectedBlock
+}
+
 type UI struct {
-	gui *gocui.Gui
+	gui   *gocui.Gui
+	state state
 }
 
 func New() (*UI, error) {
@@ -47,19 +53,37 @@ func (ui *UI) Loop() error {
 }
 
 func (ui *UI) Render(resp *client.Response) {
+	// Copy the last BLOCKS_TO_DISPLAY blocks to a slice
+	nBlocks := len(resp.Blocks)
+	if nBlocks > BLOCKS_TO_DISPLAY {
+		nBlocks = BLOCKS_TO_DISPLAY
+	}
+	blocks := make([]client.Block, nBlocks)
+	for i := 0; i < nBlocks; i++ {
+		blocks[i] = resp.Blocks[len(resp.Blocks)-1-i]
+	}
+
+	if bs := blocks; len(bs) != 0 {
+		ui.state.blocks = bs
+	}
+
+	if bs := resp.ProjectedBlocks; len(bs) != 0 {
+		ui.state.projected = bs
+	}
+
 	ui.gui.Update(func(g *gocui.Gui) error {
-		return ui.update(g, resp)
+		return ui.update(g)
 	})
 }
 
-func (ui *UI) update(g *gocui.Gui, resp *client.Response) error {
+func (ui *UI) update(g *gocui.Gui) error {
 	x, y := g.Size()
 
 	// whether or not use vertical layout
 	vertical := BLOCK_WIDTH*5 > x
 
 	// draw projected blocks (mempool)
-	for i, _ := range resp.ProjectedBlocks {
+	for i, _ := range ui.state.projected {
 		name := fmt.Sprintf("projected-block-%d", i)
 		var x0, x1, y0, y1 int
 		if vertical {
@@ -81,7 +105,7 @@ func (ui *UI) update(g *gocui.Gui, resp *client.Response) error {
 			}
 		}
 		v.Clear()
-		if _, err := v.Write(printProjectedBlock(i, resp)); err != nil {
+		if _, err := v.Write(ui.printProjectedBlock(i)); err != nil {
 			return err
 		}
 	}
@@ -90,18 +114,8 @@ func (ui *UI) update(g *gocui.Gui, resp *client.Response) error {
 		return err
 	}
 
-	// Copy the last BLOCKS_TO_DISPLAY blocks to a slice
-	nBlocks := len(resp.Blocks)
-	if nBlocks > BLOCKS_TO_DISPLAY {
-		nBlocks = BLOCKS_TO_DISPLAY
-	}
-	blocks := make([]*client.Block, nBlocks)
-	for i := 0; i < nBlocks; i++ {
-		blocks[i] = &resp.Blocks[len(resp.Blocks)-1-i]
-	}
-
 	// draw blockchain blocks
-	for i, block := range blocks {
+	for i, block := range ui.state.blocks {
 		name := fmt.Sprintf("block-%d", i)
 		var x0, x1, y0, y1 int
 		if vertical {
@@ -124,7 +138,7 @@ func (ui *UI) update(g *gocui.Gui, resp *client.Response) error {
 		}
 		v.Title = fmt.Sprintf("#%d", block.Height)
 		v.Clear()
-		if _, err := v.Write(printBlock(i, blocks)); err != nil {
+		if _, err := v.Write(ui.printBlock(i)); err != nil {
 			return err
 		}
 	}
@@ -166,8 +180,8 @@ var (
 	yellow = color.New(color.FgYellow).SprintfFunc()
 )
 
-func printProjectedBlock(n int, resp *client.Response) []byte {
-	block := resp.ProjectedBlocks[n]
+func (ui *UI) printProjectedBlock(n int) []byte {
+	block := ui.state.projected[n]
 
 	lines := []string{
 		white("   ~%.3f sat/vB       ", block.MedianFee),
@@ -201,8 +215,8 @@ func printProjectedBlock(n int, resp *client.Response) []byte {
 	return buf.Bytes()
 }
 
-func printBlock(n int, blocks []*client.Block) []byte {
-	block := blocks[n]
+func (ui *UI) printBlock(n int) []byte {
+	block := ui.state.blocks[n]
 
 	ago := time.Now().Unix() - int64(block.Time)
 	lines := []string{
