@@ -213,7 +213,7 @@ func printBlock(n int, blocks []*client.Block) []byte {
 		"                       ",
 		"                       ",
 		"                       ",
-		white(" %d secs ago        ", ago),
+		white(" %s ago        ", fmtSeconds(ago)),
 		"                       ",
 	}
 
@@ -225,4 +225,15 @@ func printBlock(n int, blocks []*client.Block) []byte {
 	buf := bytes.NewBuffer(nil)
 	fmt.Fprintf(buf, strings.Join(lines, "\n"))
 	return buf.Bytes()
+}
+
+func fmtSeconds(s int64) string {
+	if s < 60 {
+		return "< 1 minute"
+	} else if s < 120 {
+		return fmt.Sprintf("1 minute")
+	} else if s < 3600 {
+		return fmt.Sprintf("%d minutes", s/60)
+	}
+	return fmt.Sprintf("%d hours", s/3600)
 }
