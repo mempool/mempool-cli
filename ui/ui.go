@@ -118,6 +118,7 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 			if err != gocui.ErrUnknownView {
 				return err
 			}
+			v.BgColor = gocui.ColorBlack
 		}
 		v.Clear()
 		if _, err := v.Write(ui.printProjectedBlock(i)); err != nil {
@@ -150,6 +151,7 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 			if err != gocui.ErrUnknownView {
 				return err
 			}
+			v.BgColor = gocui.ColorBlack
 		}
 		v.Title = fmt.Sprintf("#%d", block.Height)
 		v.Clear()
@@ -274,7 +276,7 @@ func (ui *UI) printBlock(n int) []byte {
 
 	ago := time.Now().Unix() - int64(block.Time)
 	lines := []string{
-		white("    ~%d sat/Vb      ", ceil(block.MedianFee)),
+		white("    ~%d sat/Vb       ", ceil(block.MedianFee)),
 		yellow("  %d - %d sat/vB     ", ceil(block.MinFee), ceil(block.MaxFee)),
 		"                       ",
 		white("     %.2f MB              ", float64(block.Size)/(1000*1000)),
