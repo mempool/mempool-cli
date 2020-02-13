@@ -13,13 +13,13 @@ import (
 )
 
 const (
-	BLOCK_WIDTH       = 22
-	BLOCKS_TO_DISPLAY = 4
+	BLOCK_WIDTH = 22
 )
 
 type state struct {
 	blocks    []client.Block
 	projected []client.ProjectedBlock
+	info      *client.MempoolInfo
 }
 
 type UI struct {
@@ -59,11 +59,7 @@ func (ui *UI) Loop() error {
 }
 
 func (ui *UI) Render(resp *client.Response) {
-	// Copy the last BLOCKS_TO_DISPLAY blocks to a slice
 	nBlocks := len(resp.Blocks)
-	if nBlocks > BLOCKS_TO_DISPLAY {
-		nBlocks = BLOCKS_TO_DISPLAY
-	}
 	blocks := make([]client.Block, nBlocks)
 	for i := 0; i < nBlocks; i++ {
 		blocks[i] = resp.Blocks[len(resp.Blocks)-1-i]
@@ -77,13 +73,28 @@ func (ui *UI) Render(resp *client.Response) {
 		ui.state.projected = bs
 	}
 
+	if b := resp.Block; b != nil {
+		ui.state.blocks = append(ui.state.blocks, *b)
+	}
+
+	if info := resp.MempoolInfo; info != nil {
+		ui.state.info = info
+	}
+
+	// delete all the views
+	for _, v := range ui.gui.Views() {
+		ui.gui.DeleteView(v.Name())
+	}
+
 	ui.gui.Update(ui.Layout)
 }
 
 func (ui *UI) Layout(g *gocui.Gui) error {
 	x, y := g.Size()
 
-	// whether or not use vertical layout
+	// vertical layout is used if 8 blocks don't fit on the screen
+	// when in vertical layout the mempool is shown in the top
+	// and the blockchain in the bottom
 	vertical := BLOCK_WIDTH*8 > x
 
 	// draw projected blocks (mempool)
@@ -147,6 +158,10 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 		}
 	}
 
+	if err := ui.info(g, x, y); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -182,7 +197,38 @@ func (ui *UI) separator(g *gocui.Gui, x, y int, vertical bool) error {
 var (
 	white  = color.New(color.FgWhite).SprintfFunc()
 	yellow = color.New(color.FgYellow).SprintfFunc()
+	red    = color.New(color.FgRed).SprintfFunc()
+	blue   = color.New(color.FgBlue).SprintfFunc()
 )
+
+func (ui *UI) info(g *gocui.Gui, x, y int) error {
+	v, err := g.SetView("info", 0, y-2, x, y)
+	if err != nil {
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+		v.Frame = false
+		v.BgColor = gocui.ColorBlack
+	}
+	v.Clear()
+	info := ui.state.info
+	if info == nil {
+		return nil
+	}
+
+	var mSize int
+	for _, b := range ui.state.projected {
+		mSize += b.BlockSize
+	}
+
+	fmt.Fprintf(v, "%s %s, %s %s",
+		red("Unconfirmed Txs: "),
+		white("%d", info.Size),
+		blue("Mempool size"),
+		white("%s (%d block/s)", fmtSize(mSize), len(ui.state.projected)),
+	)
+	return nil
+}
 
 func ceil(f float64) int {
 	return int(
@@ -242,9 +288,12 @@ func (ui *UI) printBlock(n int) []byte {
 		"                       ",
 	}
 
-	bg := color.New(color.BgBlue).SprintFunc()
-	for i, l := range lines {
-		lines[i] = bg(l)
+	bg := color.New(color.BgBlue).SprintfFunc()
+	offset := 9 - int(
+		float64(block.Weight)/4000000.0*10,
+	)
+	for i := offset; i < len(lines); i++ {
+		lines[i] = bg("%s", lines[i])
 	}
 
 	buf := bytes.NewBuffer(nil)
@@ -261,6 +310,15 @@ func fmtSeconds(s int64) string {
 		return fmt.Sprintf("%d minutes", s/60)
 	}
 	return fmt.Sprintf("%d hours", s/3600)
+}
+
+func fmtSize(s int) string {
+	if s < 1024*1024 {
+		m := float64(s) / 1000.0
+		return fmt.Sprintf("%dkB", ceil(m))
+	}
+	m := float64(s) / (1000.0 * 1000.0)
+	return fmt.Sprintf("%fMB", ceil(m))
 }
 
 func (ui *UI) click(g *gocui.Gui, v *gocui.View) error {

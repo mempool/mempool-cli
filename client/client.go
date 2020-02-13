@@ -2,6 +2,11 @@ package client
 
 import "github.com/gorilla/websocket"
 
+type MempoolInfo struct {
+	Size  int `json:"size"`
+	Bytes int `json:"bytes"`
+}
+
 type Block struct {
 	Hash      string  `json:"hash"`
 	Height    int     `json:"height"`
@@ -29,12 +34,9 @@ type ProjectedBlock struct {
 }
 
 type Response struct {
-	MempoolInfo struct {
-		Size  int `json:"size"`
-		Bytes int `json:"bytes"`
-	} `json:"mempoolInfo"`
+	MempoolInfo *MempoolInfo `json:"mempoolInfo"`
 
-	Block  Block   `json:"block"`
+	Block  *Block  `json:"block"`
 	Blocks []Block `json:"blocks"`
 
 	ProjectedBlocks []ProjectedBlock `json:"projectedBlocks"`
