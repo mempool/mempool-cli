@@ -28,6 +28,7 @@ func New() (*UI, error) {
 	}
 
 	gui.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit)
+	gui.SetKeybinding("", 'q', gocui.ModNone, quit)
 
 	return &UI{gui: gui}, nil
 }
