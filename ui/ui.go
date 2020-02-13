@@ -37,6 +37,8 @@ func New() (*UI, error) {
 	gui.SetManager(ui)
 	gui.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit)
 	gui.SetKeybinding("", 'q', gocui.ModNone, quit)
+	gui.SetKeybinding("", gocui.MouseLeft, gocui.ModNone, ui.click)
+	gui.Mouse = true
 
 	return ui, nil
 }
@@ -251,4 +253,8 @@ func fmtSeconds(s int64) string {
 		return fmt.Sprintf("%d minutes", s/60)
 	}
 	return fmt.Sprintf("%d hours", s/3600)
+}
+
+func (ui *UI) click(g *gocui.Gui, v *gocui.View) error {
+	return nil
 }
