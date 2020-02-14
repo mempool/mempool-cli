@@ -75,7 +75,7 @@ func (b ProjectedBlock) Print(n int, x, _y int) []byte {
 	var full int
 	if n < 3 {
 		full = int(
-			float64(b.BlockWeight) / 4000000 * 10,
+			float64(b.BlockWeight) / 4_000_000 * 10,
 		)
 	}
 

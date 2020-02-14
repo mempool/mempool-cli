@@ -252,9 +252,16 @@ func (ui *UI) info(g *gocui.Gui, x, y int) error {
 		mSize += b.BlockSize
 	}
 
+	// Compute the total number of blocks on the mempool
+	// We use the total BlockWeight / 4mm
+	var w float64
+	for _, b := range ui.state.projected {
+		w += float64(b.BlockWeight)
+	}
+
 	fmt.Fprintf(v, "%s %s, %s %s",
 		red("Unconfirmed Txs: "), white("%d", info.Size),
-		blue("Mempool size"), white("%s (%d block/s)", fmtSize(mSize), len(ui.state.projected)),
+		blue("Mempool size"), white("%s (%d block/s)", fmtSize(mSize), ceil(w/4_000_000)),
 	)
 	return nil
 }
