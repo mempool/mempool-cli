@@ -1,11 +1,9 @@
 package ui
 
 import (
-	"bytes"
 	"fmt"
 	"math"
 	"strings"
-	"time"
 
 	"github.com/fatih/color"
 	"github.com/gchaincl/mempool/client"
@@ -121,7 +119,8 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 			v.BgColor = gocui.ColorBlack
 		}
 		v.Clear()
-		if _, err := v.Write(ui.printProjectedBlock(i)); err != nil {
+
+		if _, err := v.Write(ui.printProjectedBlock(i, x1-x0, y1-y0)); err != nil {
 			return err
 		}
 	}
@@ -155,7 +154,7 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 		}
 		v.Title = fmt.Sprintf("#%d", block.Height)
 		v.Clear()
-		if _, err := v.Write(ui.printBlock(i)); err != nil {
+		if _, err := v.Write(ui.printBlock(i, x1-x0, y1-y0)); err != nil {
 			return err
 		}
 	}
@@ -165,6 +164,16 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 	}
 
 	return nil
+}
+
+func (ui *UI) printProjectedBlock(n int, x, y int) []byte {
+	b := ui.state.projected[n]
+	return ProjectedBlock(b).Print(n, x, y)
+}
+
+func (ui *UI) printBlock(n int, x, y int) []byte {
+	b := ui.state.blocks[n]
+	return Block(b).Print(n, x, y)
 }
 
 func (ui *UI) separator(g *gocui.Gui, x, y int, vertical bool) error {
@@ -196,14 +205,13 @@ func (ui *UI) separator(g *gocui.Gui, x, y int, vertical bool) error {
 	return nil
 }
 
-var (
-	white  = color.New(color.FgWhite).SprintfFunc()
-	yellow = color.New(color.FgYellow).SprintfFunc()
-	red    = color.New(color.FgRed).SprintfFunc()
-	blue   = color.New(color.FgBlue).SprintfFunc()
-)
-
 func (ui *UI) info(g *gocui.Gui, x, y int) error {
+	var (
+		white = color.New(color.FgWhite).SprintfFunc()
+		red   = color.New(color.FgRed).SprintfFunc()
+		blue  = color.New(color.FgBlue).SprintfFunc()
+	)
+
 	v, err := g.SetView("info", 0, y-2, x, y)
 	if err != nil {
 		if err != gocui.ErrUnknownView {
@@ -234,75 +242,6 @@ func ceil(f float64) int {
 	return int(
 		math.Ceil(f),
 	)
-}
-
-func (ui *UI) printProjectedBlock(n int) []byte {
-	block := ui.state.projected[n]
-
-	lines := []string{
-		white("   ~%d sat/vB         ", ceil(block.MedianFee)),
-		yellow("  %d - %d sat/vB     ", ceil(block.MinFee), ceil(block.MaxFee)),
-		"                       ",
-		white("     %.2f MB              ", float64(block.BlockSize)/(1000*1000)),
-		white(" %4d transactions     ", block.NTx),
-		"                       ",
-		"                       ",
-		"                       ",
-		"                       ",
-		"                       ",
-	}
-
-	if n < 3 {
-		lines[8] = white("   in ~%2d minutes     ", (n+1)*10)
-		bg := color.New(color.BgRed).SprintfFunc()
-		offset := 9 - int(
-			float64(block.BlockWeight)/4000000.0*10,
-		)
-		if offset < 0 {
-			offset = 0
-		}
-
-		for i := offset; i < len(lines); i++ {
-			lines[i] = bg("%s", lines[i])
-		}
-	} else {
-		bw := math.Ceil(float64(block.BlockWeight) / 4000000.0)
-		lines[8] = white("    +%d blocks", int(bw))
-	}
-
-	buf := bytes.NewBuffer(nil)
-	fmt.Fprintf(buf, strings.Join(lines, "\n"))
-	return buf.Bytes()
-}
-
-func (ui *UI) printBlock(n int) []byte {
-	block := ui.state.blocks[n]
-
-	ago := time.Now().Unix() - int64(block.Time)
-	lines := []string{
-		white("    ~%d sat/Vb        ", ceil(block.MedianFee)),
-		yellow("  %d - %d sat/vB     ", ceil(block.MinFee), ceil(block.MaxFee)),
-		"                       ",
-		white("     %.2f MB              ", float64(block.Size)/(1000*1000)),
-		white(" %4d transactions     ", block.NTx),
-		"                       ",
-		"                       ",
-		"                       ",
-		white(" %s ago        ", fmtSeconds(ago)),
-		"                       ",
-	}
-
-	bg := color.New(color.BgBlue).SprintfFunc()
-	offset := 9 - int(
-		float64(block.Weight)/4000000.0*10,
-	)
-	for i := offset; i < len(lines); i++ {
-		lines[i] = bg("%s", lines[i])
-	}
-
-	buf := bytes.NewBuffer(nil)
-	fmt.Fprintf(buf, strings.Join(lines, "\n"))
-	return buf.Bytes()
 }
 
 func fmtSeconds(s int64) string {
