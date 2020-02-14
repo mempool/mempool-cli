@@ -15,6 +15,7 @@ const (
 )
 
 type state struct {
+	loaded    bool
 	blocks    []client.Block
 	projected []client.ProjectedBlock
 	info      *client.MempoolInfo
@@ -57,6 +58,8 @@ func (ui *UI) Loop() error {
 }
 
 func (ui *UI) Render(resp *client.Response) {
+	ui.state.loaded = true
+
 	nBlocks := len(resp.Blocks)
 	blocks := make([]client.Block, nBlocks)
 	for i := 0; i < nBlocks; i++ {
@@ -90,6 +93,11 @@ func (ui *UI) Render(resp *client.Response) {
 func (ui *UI) Layout(g *gocui.Gui) error {
 	x, y := g.Size()
 
+	if !ui.state.loaded {
+		return ui.loading(g, x, y)
+	}
+	g.DeleteView("loading")
+
 	// vertical layout is used if 8 blocks don't fit on the screen
 	// when in vertical layout the mempool is shown in the top
 	// and the blockchain in the bottom
@@ -118,8 +126,8 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 			}
 			v.BgColor = gocui.ColorBlack
 		}
-		v.Clear()
 
+		v.Clear()
 		if _, err := v.Write(ui.printProjectedBlock(i, x1-x0, y1-y0)); err != nil {
 			return err
 		}
@@ -152,6 +160,7 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 			}
 			v.BgColor = gocui.ColorBlack
 		}
+
 		v.Title = fmt.Sprintf("#%d", block.Height)
 		v.Clear()
 		if _, err := v.Write(ui.printBlock(i, x1-x0, y1-y0)); err != nil {
@@ -163,6 +172,18 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 		return err
 	}
 
+	return nil
+}
+
+func (ui *UI) loading(g *gocui.Gui, x, y int) error {
+	v, err := g.SetView("loading", x/2-10, y/2-1, x/2+10, y/2+1)
+	if err != nil {
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+	}
+	v.Clear()
+	fmt.Fprintf(v, "Loading blocks ...")
 	return nil
 }
 
@@ -186,7 +207,7 @@ func (ui *UI) separator(g *gocui.Gui, x, y int, vertical bool) error {
 		y0, y1 = 0, y
 	}
 
-	v, err := g.SetView("separtor", x0, y0, x1, y1)
+	v, err := g.SetView("separator", x0, y0, x1, y1)
 	if err != nil {
 		if err != gocui.ErrUnknownView {
 			return err

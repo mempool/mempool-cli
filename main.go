@@ -8,11 +8,6 @@ import (
 )
 
 func main() {
-	c, err := client.New()
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	gui, err := ui.New()
 	if err != nil {
 		log.Fatal(err)
@@ -20,6 +15,11 @@ func main() {
 	defer gui.Close()
 
 	go func() {
+		c, err := client.New()
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		for {
 			resp, err := c.Read()
 			if err != nil {
