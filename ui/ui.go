@@ -258,6 +258,10 @@ func (ui *UI) printProjectedBlock(n int) []byte {
 		offset := 9 - int(
 			float64(block.BlockWeight)/4000000.0*10,
 		)
+		if offset < 0 {
+			offset = 0
+		}
+
 		for i := offset; i < len(lines); i++ {
 			lines[i] = bg("%s", lines[i])
 		}
