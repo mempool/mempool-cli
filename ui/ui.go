@@ -74,7 +74,7 @@ func (ui *UI) Render(resp *client.Response) {
 	}
 
 	if b := resp.Block; b != nil {
-		ui.state.blocks = append(ui.state.blocks, *b)
+		ui.state.blocks = append([]client.Block{*b}, ui.state.blocks...)
 	}
 
 	if info := resp.MempoolInfo; info != nil {
@@ -102,7 +102,7 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 		name := fmt.Sprintf("projected-block-%d", i)
 		var x0, x1, y0, y1 int
 		if vertical {
-			x0 = x - (x/4)*(i+1)
+			x0 = x - (BLOCK_WIDTH+2)*(i+1)
 			x1 = x0 + BLOCK_WIDTH
 			y0 = (y / 2) - 12
 			y1 = (y / 2) - 2
@@ -135,7 +135,7 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 		name := fmt.Sprintf("block-%d", i)
 		var x0, x1, y0, y1 int
 		if vertical {
-			x0 = x - (x/4)*(i+1)
+			x0 = x - (BLOCK_WIDTH+2)*(i+1)
 			x1 = x0 + BLOCK_WIDTH
 			y0 = (y / 2) + 2
 			y1 = (y / 2) + 12
@@ -240,7 +240,7 @@ func (ui *UI) printProjectedBlock(n int) []byte {
 	block := ui.state.projected[n]
 
 	lines := []string{
-		white("   ~%d sat/vB       ", ceil(block.MedianFee)),
+		white("   ~%d sat/vB         ", ceil(block.MedianFee)),
 		yellow("  %d - %d sat/vB     ", ceil(block.MinFee), ceil(block.MaxFee)),
 		"                       ",
 		white("     %.2f MB              ", float64(block.BlockSize)/(1000*1000)),
@@ -276,7 +276,7 @@ func (ui *UI) printBlock(n int) []byte {
 
 	ago := time.Now().Unix() - int64(block.Time)
 	lines := []string{
-		white("    ~%d sat/Vb       ", ceil(block.MedianFee)),
+		white("    ~%d sat/Vb        ", ceil(block.MedianFee)),
 		yellow("  %d - %d sat/vB     ", ceil(block.MinFee), ceil(block.MaxFee)),
 		"                       ",
 		white("     %.2f MB              ", float64(block.Size)/(1000*1000)),
