@@ -95,7 +95,7 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 	// vertical layout is used if 8 blocks don't fit on the screen
 	// when in vertical layout the mempool is shown in the top
 	// and the blockchain in the bottom
-	vertical := BLOCK_WIDTH*8 > x
+	vertical := BLOCK_WIDTH*6 > x
 
 	// draw projected blocks (mempool)
 	for i, _ := range ui.state.projected {
