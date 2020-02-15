@@ -99,8 +99,8 @@ func (b Block) Print(n int, x, _y int) []byte {
 		Printf(color.FgWhite, "%s ago", fmtSeconds(ago))
 
 	full := int(
-		float64(b.Weight) / 4000000 * 10,
+		float64(b.Weight) / 4_000_000 * 10,
 	)
 
-	return box.Render(full+4, color.BgBlue)
+	return box.Render(full, color.BgBlue)
 }
