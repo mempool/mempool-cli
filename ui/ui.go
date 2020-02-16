@@ -15,10 +15,11 @@ const (
 )
 
 type state struct {
-	loaded    bool
-	blocks    []client.Block
-	projected []client.ProjectedBlock
-	info      *client.MempoolInfo
+	loaded          bool
+	blocks          []client.Block
+	projected       []client.ProjectedBlock
+	vBytesPerSecond int
+	info            *client.MempoolInfo
 }
 
 type UI struct {
@@ -59,6 +60,8 @@ func (ui *UI) Loop() error {
 
 func (ui *UI) Render(resp *client.Response) {
 	ui.state.loaded = true
+
+	ui.state.vBytesPerSecond = resp.VBytesPerSecond
 
 	nBlocks := len(resp.Blocks)
 	blocks := make([]client.Block, nBlocks)
@@ -259,9 +262,10 @@ func (ui *UI) info(g *gocui.Gui, x, y int) error {
 		w += float64(b.BlockWeight)
 	}
 
-	fmt.Fprintf(v, "%s %s, %s %s",
+	fmt.Fprintf(v, "%s %s, %s %s, %s %s",
 		red("Unconfirmed Txs: "), white("%d", info.Size),
 		blue("Mempool size"), white("%s (%d block/s)", fmtSize(mSize), ceil(w/4_000_000)),
+		blue("Tx weight per second"), red("%d", ui.state.vBytesPerSecond),
 	)
 	return nil
 }
@@ -293,6 +297,5 @@ func fmtSize(s int) string {
 }
 
 func (ui *UI) click(g *gocui.Gui, v *gocui.View) error {
-	_, err := g.SetCurrentView(v.Name())
-	return err
+	return nil
 }
