@@ -265,7 +265,7 @@ func (ui *UI) info(g *gocui.Gui, x, y int) error {
 	fmt.Fprintf(v, "%s %s, %s %s, %s %s",
 		red("Unconfirmed Txs: "), white("%d", info.Size),
 		blue("Mempool size"), white("%s (%d block/s)", fmtSize(mSize), ceil(w/4_000_000)),
-		blue("Tx weight per second"), red("%d", ui.state.vBytesPerSecond),
+		blue("Tx weight per second"), red("%d vBytes/s", ui.state.vBytesPerSecond),
 	)
 	return nil
 }
