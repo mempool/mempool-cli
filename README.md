@@ -3,6 +3,9 @@
 ![mempool screenshot](https://github.com/gchaincl/mempool/raw/master/share/screenshot.png)
 
 # Install
+Get a pre-built [release](https://github.com/gchaincl/mempool/releases/latest)
+
+### development version
 ```bash
 go get -u github.com/gchaincl/mempool
 ```
