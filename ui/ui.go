@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 	"math"
+	"strconv"
 	"strings"
 
 	"github.com/fatih/color"
@@ -24,6 +25,7 @@ type state struct {
 
 type UI struct {
 	gui   *gocui.Gui
+	fd    *FeeDistribution
 	state state
 }
 
@@ -34,12 +36,13 @@ func New() (*UI, error) {
 	}
 
 	ui := &UI{gui: gui}
-	gui.SetManager(ui)
+	ui.fd = NewFeeDistribution(gui)
+	gui.SetManager(ui, ui.fd)
 	gui.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit)
 	gui.SetKeybinding("", 'q', gocui.ModNone, quit)
-	gui.SetKeybinding("", gocui.MouseLeft, gocui.ModNone, ui.click)
 	gui.Mouse = true
 	gui.Highlight = true
+	gui.InputEsc = true
 	gui.SelFgColor = gocui.ColorWhite
 
 	return ui, nil
@@ -128,6 +131,7 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 				return err
 			}
 			v.BgColor = gocui.ColorBlack
+			g.SetKeybinding(v.Name(), gocui.MouseLeft, gocui.ModNone, ui.onBlockClick)
 		}
 
 		v.Clear()
@@ -142,7 +146,7 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 
 	// draw blockchain blocks
 	for i, block := range ui.state.blocks {
-		name := fmt.Sprintf("block-%d", i)
+		name := fmt.Sprintf("block-%d", block.Height)
 		var x0, x1, y0, y1 int
 		if vertical {
 			x0 = x - (BLOCK_WIDTH+2)*(i+1)
@@ -162,6 +166,7 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 				return err
 			}
 			v.BgColor = gocui.ColorBlack
+			g.SetKeybinding(v.Name(), gocui.MouseLeft, gocui.ModNone, ui.onBlockClick)
 		}
 
 		v.Title = fmt.Sprintf("#%d", block.Height)
@@ -296,6 +301,19 @@ func fmtSize(s int) string {
 	return fmt.Sprintf("%dMB", ceil(m))
 }
 
-func (ui *UI) click(g *gocui.Gui, v *gocui.View) error {
+func (ui *UI) onBlockClick(g *gocui.Gui, v *gocui.View) error {
+	name := v.Name()
+	if strings.HasPrefix(name, "projected-block-") {
+		id := strings.TrimPrefix(name, "projected-block-")
+		n, _ := strconv.Atoi(id)
+		return ui.fd.FetchProjection(n)
+	}
+
+	if strings.HasPrefix(name, "block-") {
+		id := strings.TrimPrefix(name, "block-")
+		n, _ := strconv.Atoi(id)
+		return ui.fd.FetchBlock(n)
+	}
+
 	return nil
 }
