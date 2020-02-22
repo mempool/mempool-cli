@@ -6,6 +6,7 @@ import (
 	"sort"
 	"sync"
 
+	"github.com/fatih/color"
 	"github.com/gchaincl/mempool/client"
 	"github.com/jroimartin/gocui"
 )
@@ -18,6 +19,7 @@ type FeeDistribution struct {
 	isProjected bool
 	cancelFn    context.CancelFunc
 	fees        client.Fees
+	title       string
 }
 
 func NewFeeDistribution(g *gocui.Gui) *FeeDistribution {
@@ -84,7 +86,7 @@ func (fd *FeeDistribution) Layout(g *gocui.Gui) error {
 			return err
 		}
 
-		v.Title = "Fee distribution ('esc' to close)"
+		v.Title = "Fee distribution" + fd.title + "('esc' to close)"
 		g.SetCurrentView(name)
 		g.SetViewOnTop(name)
 		g.SetKeybinding(name, gocui.KeyEsc, gocui.ModNone, fd.close)
@@ -97,22 +99,17 @@ func (fd *FeeDistribution) Layout(g *gocui.Gui) error {
 		return nil
 	}
 
-	min, max := 99999, 0
-	for _, f := range fd.fees {
-		fee := int(f.FPV)
-		if fee < min {
-			min = fee
-		}
-		if fee > max {
-			max = fee
-		}
-	}
-	fmt.Fprintf(v, "Fee span: %d - %d sat/vByte\n", min, max)
-
-	fmt.Fprintf(v, "Tx count: %d transactions\n", len(fd.fees))
-
 	sort.Sort(fd.fees)
-	fmt.Fprintf(v, "Median: ~%d sat/vBytes", int(fd.fees[len(fd.fees)/2].FPV))
+	txs := len(fd.fees)
+	min, max := fd.fees[0].FPV, fd.fees[txs-1].FPV
+
+	var (
+		white  = color.New(color.FgWhite).SprintfFunc()
+		yellow = color.New(color.FgYellow).SprintfFunc()
+	)
+	fmt.Fprintf(v, white("Fee span:")+" %d - %d "+yellow("sat/vByte\n"), ceil(min), ceil(max))
+	fmt.Fprintf(v, white("Tx count:")+" %d "+white("transactions\n"), txs)
+	fmt.Fprintf(v, white("Median:  ")+" ~%d "+yellow("sat/vBytes\n"), ceil(fd.fees[txs/2].FPV))
 
 	return nil
 }
