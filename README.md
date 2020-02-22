@@ -16,7 +16,7 @@ go get -u github.com/gchaincl/mempool
 
 # TODO
 - [ ] Transaction Tracking (by Tx ID)
-- [ ] Block details on click
+- [x] Block details on click
 - [ ] Graphs
 - [ ] Tx weight per second progress bar
 - [ ] Custom API endpoint 
