@@ -31,30 +31,20 @@ func (fd *FeeDistribution) newCtx() context.Context {
 }
 
 func (fd *FeeDistribution) FetchProjection(n int) error {
-	fd.m.Lock()
-	defer fd.m.Unlock()
-
-	if fn := fd.cancelFn; fn != nil {
-		fn()
+	fn := func(ctx context.Context) (client.Fees, error) {
+		return client.GetProjectedFee(ctx, n)
 	}
-	fd.loading = true
-
-	ctx := fd.newCtx()
-	go func() {
-		fees, err := client.GetProjectedFee(ctx, n)
-		if err != nil {
-			return
-		}
-
-		fd.fees = fees
-		fd.loading = false
-		fd.gui.Update(fd.Layout)
-	}()
-
-	return nil
+	return fd.fetch(fn)
 }
 
 func (fd *FeeDistribution) FetchBlock(n int) error {
+	fn := func(ctx context.Context) (client.Fees, error) {
+		return client.GetBlockFee(ctx, n)
+	}
+	return fd.fetch(fn)
+}
+
+func (fd *FeeDistribution) fetch(fn func(ctx context.Context) (client.Fees, error)) error {
 	fd.m.Lock()
 	defer fd.m.Unlock()
 
@@ -65,7 +55,7 @@ func (fd *FeeDistribution) FetchBlock(n int) error {
 
 	ctx := fd.newCtx()
 	go func() {
-		fees, err := client.GetBlockFee(ctx, n)
+		fees, err := fn(ctx)
 		if err != nil {
 			return
 		}
@@ -88,13 +78,13 @@ func (fd *FeeDistribution) Layout(g *gocui.Gui) error {
 
 	x, y := g.Size()
 	name := "fee_distribution"
-	v, err := g.SetView(name, x/2-20, y/2-7, x/2+20, y/2+7)
+	v, err := g.SetView(name, x/2-20, y/2-3, x/2+20, y/2+3)
 	if err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
 
-		v.Title = "Fee distribution"
+		v.Title = "Fee distribution ('esc' to close)"
 		g.SetCurrentView(name)
 		g.SetViewOnTop(name)
 		g.SetKeybinding(name, gocui.KeyEsc, gocui.ModNone, fd.close)
