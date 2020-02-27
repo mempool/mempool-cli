@@ -44,6 +44,17 @@ type ProjectedBlock struct {
 	HasMyTx      bool    `json:"hasMytx"`
 }
 
+type TrackTx struct {
+	Tracking    bool   `json:"tracking"`
+	BlockHeight int    `json:"blockHeight"`
+	Message     string `json:"message"`
+	TX          struct {
+		Status struct {
+			Confirmed bool
+		}
+	} `json:"tx"`
+}
+
 type Response struct {
 	MempoolInfo *MempoolInfo `json:"mempoolInfo"`
 
@@ -51,6 +62,7 @@ type Response struct {
 	Blocks []Block `json:"blocks"`
 
 	ProjectedBlocks []ProjectedBlock `json:"projectedBlocks"`
+	TrackTx         TrackTx          `json:"track-tx"`
 
 	TxPerSecond     float64 `json:"txPerSecond"`
 	VBytesPerSecond int     `json:"vBytesPerSecond"`
@@ -70,12 +82,6 @@ func New() (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	if err := conn.WriteMessage(websocket.TextMessage, []byte(
-		`{"action":"want","data":["stats","blocks","projected-blocks"]}`,
-	)); err != nil {
-		return nil, err
-	}
 	return &Client{conn: conn}, nil
 }
 
@@ -85,6 +91,18 @@ func (c *Client) Read() (*Response, error) {
 		return nil, err
 	}
 	return &resp, nil
+}
+
+func (c *Client) Want() error {
+	return c.conn.WriteMessage(websocket.TextMessage, []byte(
+		`{"action":"want","data":["stats","blocks","projected-blocks"]}`,
+	))
+}
+
+func (c *Client) Track(txId string) error {
+	return c.conn.WriteMessage(websocket.TextMessage, []byte(
+		fmt.Sprintf(`{"action":"track-tx","txId":"%s"}`, txId),
+	))
 }
 
 type Fees []struct {

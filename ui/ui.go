@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 
@@ -20,12 +21,15 @@ type state struct {
 	projected       []client.ProjectedBlock
 	vBytesPerSecond int
 	info            *client.MempoolInfo
+	tracking        *client.TrackTx
 }
 
 type UI struct {
-	gui   *gocui.Gui
-	fd    *FeeDistribution
-	state state
+	client *client.Client
+	gui    *gocui.Gui
+	fd     *FeeDistribution
+	ts     *TXSearch
+	state  state
 }
 
 func New() (*UI, error) {
@@ -36,13 +40,39 @@ func New() (*UI, error) {
 
 	ui := &UI{gui: gui}
 	ui.fd = NewFeeDistribution(gui)
-	gui.SetManager(ui, ui.fd)
+	ui.ts = NewTXSearch(gui)
+	gui.SetManager(ui, ui.fd, ui.ts)
+
 	gui.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit)
-	gui.SetKeybinding("", 'q', gocui.ModNone, quit)
+	ui.ts.SetKeybinding()
+
 	gui.Mouse = true
 	gui.Highlight = true
 	gui.InputEsc = true
 	gui.SelFgColor = gocui.ColorWhite
+
+	go func() {
+		c, err := client.New()
+		if err != nil {
+			log.Fatal(err)
+		}
+		if err := c.Want(); err != nil {
+			log.Fatal(err)
+		}
+		ui.client = c
+		ui.ts.Callback(func(txId string) error {
+			return c.Track(txId)
+		})
+
+		for {
+			resp, err := c.Read()
+			if err != nil {
+				log.Fatal(err)
+			}
+			ui.Render(resp)
+		}
+
+	}()
 
 	return ui, nil
 }
@@ -87,6 +117,9 @@ func (ui *UI) Render(resp *client.Response) {
 		ui.state.info = info
 	}
 
+	// Update tracking info
+	ui.state.tracking = &resp.TrackTx
+
 	// delete all the views
 	for _, v := range ui.gui.Views() {
 		ui.gui.DeleteView(v.Name())
@@ -107,6 +140,8 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 	// when in vertical layout the mempool is shown in the top
 	// and the blockchain in the bottom
 	vertical := BLOCK_WIDTH*6 > x
+
+	track := ui.state.tracking
 
 	// draw projected blocks (mempool)
 	for i, _ := range ui.state.projected {
@@ -131,6 +166,14 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 			}
 			v.BgColor = gocui.ColorBlack
 			g.SetKeybinding(v.Name(), gocui.MouseLeft, gocui.ModNone, ui.onBlockClick)
+
+			if track.Tracking && !track.TX.Status.Confirmed {
+				if track.BlockHeight == i {
+					v.SelBgColor = gocui.ColorRed
+					v.SelFgColor = gocui.ColorRed
+					g.SetCurrentView(v.Name())
+				}
+			}
 		}
 
 		v.Clear()
@@ -166,9 +209,17 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 			}
 			v.BgColor = gocui.ColorBlack
 			g.SetKeybinding(v.Name(), gocui.MouseLeft, gocui.ModNone, ui.onBlockClick)
+
 		}
 
 		v.Title = fmt.Sprintf("#%d", block.Height)
+		if track.Tracking && track.TX.Status.Confirmed {
+			if track.BlockHeight == block.Height {
+				v.SelBgColor = gocui.ColorRed
+				v.SelFgColor = gocui.ColorRed
+				g.SetCurrentView(v.Name())
+			}
+		}
 		v.Clear()
 		if _, err := v.Write(ui.printBlock(i, x1-x0, y1-y0)); err != nil {
 			return err
