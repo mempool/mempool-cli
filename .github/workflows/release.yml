@@ -21,13 +21,13 @@ jobs:
         with:
           go-version: 1.13.x
       -
+        name: Docker login
+        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+      -
         name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v1
         with:
           version: latest
           args: release --rm-dist
-          key: ${{ secrets.YOUR_PRIVATE_KEY }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
