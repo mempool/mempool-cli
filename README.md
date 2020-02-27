@@ -19,6 +19,14 @@ go get -u github.com/gchaincl/mempool
 docker run -it gchaincl/mempool
 ```
 
+# Usage
+### Key bindings
+Key               | Description
+------------------|--------------------------------------
+<kbd>Ctrl+c</kbd> | Quit
+<kbd>f</kbd>      | Opens Tx search
+<kbd>click</kbd>  | Opens info for a selected block
+
 # TODO
 - [x] Transaction Tracking (by Tx ID) (using 'f' key)
 - [x] Block details on click
