@@ -14,6 +14,11 @@ Get a pre-built [release](https://github.com/gchaincl/mempool/releases/latest)
 go get -u github.com/gchaincl/mempool
 ```
 
+### Docker
+```bash
+docker run -it gchaincl/mempool
+```
+
 # TODO
 - [x] Transaction Tracking (by Tx ID) (using 'f' key)
 - [x] Block details on click
