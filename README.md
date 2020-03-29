@@ -1,4 +1,4 @@
-# mempool ![release](https://github.com/gchaincl/mempool/workflows/release/badge.svg)
+# mempool
 [mempool.space](https://mempool.space/) for the terminal
 ![mempool screenshot](https://github.com/gchaincl/mempool/raw/master/share/screenshot.png)
 
