@@ -60,7 +60,10 @@ func (b MempoolBlock) Print(n int, x, _y int) []byte {
 		footer = fmt.Sprintf("+%d blocks", n)
 	}
 
-	min, max := b.FeeRange[0], b.FeeRange[len(b.FeeRange)-1]
+	var min, max float64
+	if len(b.FeeRange) > 2 {
+		min, max = b.FeeRange[0], b.FeeRange[len(b.FeeRange)-1]
+	}
 	box := &Box{x: x}
 	box.Printf(color.FgWhite, "~%d sat/vB", ceil(b.MedianFee)).
 		Printf(color.FgYellow, "%d-%d sat/vB", ceil(min), ceil(max)).
@@ -76,7 +79,7 @@ func (b MempoolBlock) Print(n int, x, _y int) []byte {
 	var full int
 	if n < 3 {
 		full = int(
-			float64(b.BlockWeight) / 4_000_000 * 10,
+			float64(b.BlockWeight) / 1_000_000 * 10,
 		)
 	}
 
@@ -89,11 +92,15 @@ func (b Block) Print(n int, x, _y int) []byte {
 	ago := time.Now().Unix() - int64(b.Time)
 	box := &Box{x: x}
 
+	var min, max float64
+	if len(b.FeeRange) > 2 {
+		min, max = b.FeeRange[0], b.FeeRange[len(b.FeeRange)-1]
+	}
 	box.Printf(color.FgWhite, "~%d sat/Vb", ceil(b.MedianFee)).
-		Printf(color.FgYellow, "%d-%d sat/vB", ceil(b.MinFee), ceil(b.MaxFee)).
+		Printf(color.FgYellow, "%d-%d sat/vB", ceil(min), ceil(max)).
 		Append("").
 		Printf(color.FgWhite, "%.2f MB", float64(b.Size)/(1000*1000)).
-		Printf(color.FgWhite, " %4d transactions", b.NTx).
+		Printf(color.FgWhite, " %4d transactions", b.TxCount).
 		Append("").
 		Append("").
 		Append("").

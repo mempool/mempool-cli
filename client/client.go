@@ -19,27 +19,24 @@ type MempoolInfo struct {
 }
 
 type Block struct {
-	Hash      string  `json:"hash"`
-	Height    int     `json:"height"`
-	NTx       int     `json:"nTx"`
-	Size      int     `json:"size"`
-	Time      int     `json:"time"`
-	Weight    int     `json:"weight"`
-	Fees      float64 `json:"fees"`
-	MinFee    float64 `json:"minFee"`
-	MaxFee    float64 `json:"maxFee"`
-	MedianFee float64 `json:"medianFee"`
+	ID        string    `json:"id"`
+	Height    int       `json:"height"`
+	TxCount   int       `json:"tx_count"`
+	Size      int       `json:"size"`
+	Time      int       `json:"timestamp"`
+	Weight    int       `json:"weight"`
+	FeeRange  []float64 `json:"fee_range"`
+	MedianFee float64   `json:"medianFee"`
 }
 
 type MempoolBlock struct {
 	BlockSize    int       `json:"blockSize"`
-	BlockWeight  int       `json:"blockWeight"`
+	BlockWeight  float64   `json:"blockVSize"`
 	NTx          int       `json:"nTx"`
-	FeeRange     []float64 `json:"feeRange"`
 	MinWeigthFee float64   `json:"minWeigthFee"`
 	MaxWeigthFee float64   `json:"maxWeigthFee"`
 	MedianFee    float64   `json:"medianFee"`
-	Fees         float64   `json:"fees"`
+	FeeRange     []float64 `json:"feeRange"`
 	HasMyTx      bool      `json:"hasMytx"`
 }
 
