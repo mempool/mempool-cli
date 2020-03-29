@@ -31,17 +31,16 @@ type Block struct {
 	MedianFee float64 `json:"medianFee"`
 }
 
-type ProjectedBlock struct {
-	BlockSize    int     `json:"blockSize"`
-	BlockWeight  int     `json:"blockWeight"`
-	NTx          int     `json:"nTx"`
-	MinFee       float64 `json:"minFee"`
-	MaxFee       float64 `json:"maxFee"`
-	MinWeigthFee float64 `json:"minWeigthFee"`
-	MaxWeigthFee float64 `json:"maxWeigthFee"`
-	MedianFee    float64 `json:"medianFee"`
-	Fees         float64 `json:"fees"`
-	HasMyTx      bool    `json:"hasMytx"`
+type MempoolBlock struct {
+	BlockSize    int       `json:"blockSize"`
+	BlockWeight  int       `json:"blockWeight"`
+	NTx          int       `json:"nTx"`
+	FeeRange     []float64 `json:"feeRange"`
+	MinWeigthFee float64   `json:"minWeigthFee"`
+	MaxWeigthFee float64   `json:"maxWeigthFee"`
+	MedianFee    float64   `json:"medianFee"`
+	Fees         float64   `json:"fees"`
+	HasMyTx      bool      `json:"hasMytx"`
 }
 
 type TrackTx struct {
@@ -61,8 +60,8 @@ type Response struct {
 	Block  *Block  `json:"block"`
 	Blocks []Block `json:"blocks"`
 
-	ProjectedBlocks []ProjectedBlock `json:"projectedBlocks"`
-	TrackTx         TrackTx          `json:"track-tx"`
+	MempoolBlocks []MempoolBlock `json:"mempool-blocks"`
+	TrackTx       TrackTx        `json:"track-tx"`
 
 	TxPerSecond     float64 `json:"txPerSecond"`
 	VBytesPerSecond int     `json:"vBytesPerSecond"`
@@ -82,6 +81,11 @@ func New() (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	conn.WriteMessage(websocket.TextMessage, []byte(
+		`{"action": "init"}`,
+	))
+
 	return &Client{conn: conn}, nil
 }
 
@@ -95,7 +99,7 @@ func (c *Client) Read() (*Response, error) {
 
 func (c *Client) Want() error {
 	return c.conn.WriteMessage(websocket.TextMessage, []byte(
-		`{"action":"want","data":["stats","blocks","projected-blocks"]}`,
+		`{"action":"want","data":["stats","blocks","mempool-blocks"]}`,
 	))
 }
 
@@ -134,9 +138,9 @@ func Get(ctx context.Context, path string, v interface{}) error {
 	return json.NewDecoder(r.Body).Decode(v)
 }
 
-func GetProjectedFee(ctx context.Context, n int) (Fees, error) {
+func GetMempoolFee(ctx context.Context, n int) (Fees, error) {
 	var fees Fees
-	if err := Get(ctx, fmt.Sprintf("transactions/projected/%d", n), &fees); err != nil {
+	if err := Get(ctx, fmt.Sprintf("transactions/mempool/%d", n), &fees); err != nil {
 		return nil, err
 	}
 	return fees, nil

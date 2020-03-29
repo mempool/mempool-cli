@@ -34,7 +34,7 @@ func (fd *FeeDistribution) newCtx() context.Context {
 
 func (fd *FeeDistribution) FetchProjection(n int) error {
 	fn := func(ctx context.Context) (client.Fees, error) {
-		return client.GetProjectedFee(ctx, n)
+		return client.GetMempoolFee(ctx, n)
 	}
 	return fd.fetch(fn)
 }

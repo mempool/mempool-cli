@@ -18,7 +18,7 @@ const (
 type state struct {
 	loaded          bool
 	blocks          []client.Block
-	projected       []client.ProjectedBlock
+	mempool         []client.MempoolBlock
 	vBytesPerSecond int
 	info            *client.MempoolInfo
 	tracking        *client.TrackTx
@@ -105,8 +105,8 @@ func (ui *UI) Render(resp *client.Response) {
 		ui.state.blocks = bs
 	}
 
-	if bs := resp.ProjectedBlocks; len(bs) != 0 {
-		ui.state.projected = bs
+	if bs := resp.MempoolBlocks; len(bs) != 0 {
+		ui.state.mempool = bs
 	}
 
 	if b := resp.Block; b != nil {
@@ -144,8 +144,8 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 	track := ui.state.tracking
 
 	// draw projected blocks (mempool)
-	for i, _ := range ui.state.projected {
-		name := fmt.Sprintf("projected-block-%d", i)
+	for i, _ := range ui.state.mempool {
+		name := fmt.Sprintf("mempool-block-%d", i)
 		var x0, x1, y0, y1 int
 		if vertical {
 			x0 = x - (BLOCK_WIDTH+2)*(i+1)
@@ -246,8 +246,8 @@ func (ui *UI) loading(g *gocui.Gui, x, y int) error {
 }
 
 func (ui *UI) printProjectedBlock(n int, x, y int) []byte {
-	b := ui.state.projected[n]
-	return ProjectedBlock(b).Print(n, x, y)
+	b := ui.state.mempool[n]
+	return MempoolBlock(b).Print(n, x, y)
 }
 
 func (ui *UI) printBlock(n int, x, y int) []byte {
@@ -306,14 +306,14 @@ func (ui *UI) info(g *gocui.Gui, x, y int) error {
 	}
 
 	var mSize int
-	for _, b := range ui.state.projected {
+	for _, b := range ui.state.mempool {
 		mSize += b.BlockSize
 	}
 
 	// Compute the total number of blocks on the mempool
 	// We use the total BlockWeight / 4mm
 	var w float64
-	for _, b := range ui.state.projected {
+	for _, b := range ui.state.mempool {
 		w += float64(b.BlockWeight)
 	}
 

@@ -48,9 +48,9 @@ func (b *Box) Render(full int, bg color.Attribute) []byte {
 	return buf.Bytes()
 }
 
-type ProjectedBlock client.ProjectedBlock
+type MempoolBlock client.MempoolBlock
 
-func (b ProjectedBlock) Print(n int, x, _y int) []byte {
+func (b MempoolBlock) Print(n int, x, _y int) []byte {
 	var footer string
 	// Attach ETA to the first 3 blocks
 	if n < 3 {
@@ -60,9 +60,10 @@ func (b ProjectedBlock) Print(n int, x, _y int) []byte {
 		footer = fmt.Sprintf("+%d blocks", n)
 	}
 
+	min, max := b.FeeRange[0], b.FeeRange[len(b.FeeRange)-1]
 	box := &Box{x: x}
 	box.Printf(color.FgWhite, "~%d sat/vB", ceil(b.MedianFee)).
-		Printf(color.FgYellow, "%d-%d sat/vB", ceil(b.MinFee), ceil(b.MaxFee)).
+		Printf(color.FgYellow, "%d-%d sat/vB", ceil(min), ceil(max)).
 		Append("").
 		Printf(color.FgWhite, "%.2f MB", float64(b.BlockSize)/(1000*1000)).
 		Printf(color.FgWhite, "%4d transactions", b.NTx).
