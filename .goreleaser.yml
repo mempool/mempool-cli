@@ -7,7 +7,6 @@ builds:
 
   goos:
     - linux
-    - freebsd
     - darwin
     - windows
 
