@@ -143,7 +143,7 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 
 	track := ui.state.tracking
 
-	// draw projected blocks (mempool)
+	// draw mempool blocks
 	for i, _ := range ui.state.mempool {
 		name := fmt.Sprintf("mempool-block-%d", i)
 		var x0, x1, y0, y1 int
@@ -177,7 +177,7 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 		}
 
 		v.Clear()
-		if _, err := v.Write(ui.printProjectedBlock(i, x1-x0, y1-y0)); err != nil {
+		if _, err := v.Write(ui.printMempoolBlock(i, x1-x0, y1-y0)); err != nil {
 			return err
 		}
 	}
@@ -245,7 +245,7 @@ func (ui *UI) loading(g *gocui.Gui, x, y int) error {
 	return nil
 }
 
-func (ui *UI) printProjectedBlock(n int, x, y int) []byte {
+func (ui *UI) printMempoolBlock(n int, x, y int) []byte {
 	b := ui.state.mempool[n]
 	return MempoolBlock(b).Print(n, x, y)
 }
@@ -327,8 +327,8 @@ func (ui *UI) info(g *gocui.Gui, x, y int) error {
 
 func (ui *UI) onBlockClick(g *gocui.Gui, v *gocui.View) error {
 	name := v.Name()
-	if strings.HasPrefix(name, "projected-block-") {
-		id := strings.TrimPrefix(name, "projected-block-")
+	if strings.HasPrefix(name, "mempool-block-") {
+		id := strings.TrimPrefix(name, "mempool-block-")
 		n, _ := strconv.Atoi(id)
 		return ui.fd.FetchProjection(n)
 	}
