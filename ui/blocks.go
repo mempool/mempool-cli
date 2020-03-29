@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/fatih/color"
-	"github.com/gchaincl/mempool/client"
+	"github.com/mempool/mempool-cli/client"
 )
 
 type Box struct {

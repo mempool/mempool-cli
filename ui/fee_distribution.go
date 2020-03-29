@@ -7,8 +7,9 @@ import (
 	"sync"
 
 	"github.com/fatih/color"
-	"github.com/gchaincl/mempool/client"
 	"github.com/jroimartin/gocui"
+
+	"github.com/mempool/mempool-cli/client"
 )
 
 type FeeDistribution struct {

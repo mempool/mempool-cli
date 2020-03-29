@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/gchaincl/mempool/ui"
+	"github.com/mempool/mempool-cli/ui"
 )
 
 func main() {
