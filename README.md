@@ -12,12 +12,12 @@ Get a pre-built [release](https://github.com/gchaincl/mempool/releases/latest)
 
 ### development version
 ```bash
-go get -u github.com/gchaincl/mempool
+go get -u github.com/mempool/mempool-cli
 ```
 
 ### Docker
 ```bash
-docker run -it gchaincl/mempool
+docker run -it mempool/mempool-cli
 ```
 
 # Usage

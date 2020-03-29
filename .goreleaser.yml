@@ -20,8 +20,8 @@ dockers:
 -
   dockerfile: Dockerfile.goreleaser
   image_templates:
-    - "gchaincl/mempool:latest"
-    - "gchaincl/mempool:{{ .Tag }}"
+    - "mempool/mempool-cli:latest"
+    - "mempool/mempool-cli:{{ .Tag }}"
 
 archives:
 - replacements:
