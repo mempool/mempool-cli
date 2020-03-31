@@ -16,13 +16,6 @@ builds:
     - arm
     - arm64
 
-dockers:
--
-  dockerfile: Dockerfile.goreleaser
-  image_templates:
-    - "mempool/mempool-cli:latest"
-    - "mempool/mempool-cli:{{ .Tag }}"
-
 archives:
 - replacements:
     linux: Linux
