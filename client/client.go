@@ -25,7 +25,7 @@ type Block struct {
 	Size      int       `json:"size"`
 	Time      int       `json:"timestamp"`
 	Weight    int       `json:"weight"`
-	FeeRange  []float64 `json:"fee_range"`
+	FeeRange  []float64 `json:"feeRange"`
 	MedianFee float64   `json:"medianFee"`
 }
 
