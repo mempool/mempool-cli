@@ -13,7 +13,8 @@ import (
 )
 
 const (
-	BLOCK_WIDTH = 22
+	BLOCK_WIDTH  = 22
+	NEXT_HALVING = 630_000
 )
 
 type state struct {
@@ -231,6 +232,11 @@ func (ui *UI) Layout(g *gocui.Gui) error {
 		return err
 	}
 
+	// halving
+	if err := ui.halvingBanner(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -324,6 +330,28 @@ func (ui *UI) info(g *gocui.Gui, x, y int) error {
 		blue("Tx weight per second"), red("%d vBytes/s", ui.state.vBytesPerSecond),
 	)
 	return nil
+}
+
+func (ui *UI) halvingBanner() error {
+	blocks := ui.state.blocks
+	if len(blocks) == 0 {
+		return nil
+	}
+	height := blocks[0].Height
+	if height >= NEXT_HALVING {
+		return nil
+	}
+
+	in := NEXT_HALVING - height
+	msg := fmt.Sprintf("Quantitative Hardening in %d blocks", in)
+	v, err := ui.gui.SetView("halving", 1, 1, len(msg)+2, 3)
+	if err != nil {
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+	}
+	_, err = fmt.Fprintf(v, msg)
+	return err
 }
 
 func (ui *UI) onBlockClick(g *gocui.Gui, v *gocui.View) error {
