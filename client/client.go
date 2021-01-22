@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	API_URL = "https://mempool.space/api/v1/"
+	API_URL = "https://mempool.space/api/v1/ws"
 )
 
 type MempoolInfo struct {
