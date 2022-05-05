@@ -21,10 +21,11 @@ type FeeDistribution struct {
 	cancelFn    context.CancelFunc
 	fees        client.Fees
 	title       string
+	client      *client.Client
 }
 
-func NewFeeDistribution(g *gocui.Gui) *FeeDistribution {
-	return &FeeDistribution{gui: g}
+func NewFeeDistribution(g *gocui.Gui, c *client.Client) *FeeDistribution {
+	return &FeeDistribution{gui: g, client: c}
 }
 
 func (fd *FeeDistribution) newCtx() context.Context {
@@ -35,14 +36,14 @@ func (fd *FeeDistribution) newCtx() context.Context {
 
 func (fd *FeeDistribution) FetchProjection(n int) error {
 	fn := func(ctx context.Context) (client.Fees, error) {
-		return client.GetMempoolFee(ctx, n)
+		return fd.client.GetMempoolFee(ctx, n)
 	}
 	return fd.fetch(fn)
 }
 
 func (fd *FeeDistribution) FetchBlock(n int) error {
 	fn := func(ctx context.Context) (client.Fees, error) {
-		return client.GetBlockFee(ctx, n)
+		return fd.client.GetBlockFee(ctx, n)
 	}
 	return fd.fetch(fn)
 }
