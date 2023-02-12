@@ -34,14 +34,19 @@ type UI struct {
 	state  state
 }
 
-func New() (*UI, error) {
+func New(endpoint string) (*UI, error) {
+	c, err := client.NewWithEndpoint(endpoint)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	gui, err := gocui.NewGui(gocui.Output256)
 	if err != nil {
 		return nil, err
 	}
 
 	ui := &UI{gui: gui}
-	ui.fd = NewFeeDistribution(gui)
+	ui.fd = NewFeeDistribution(gui, c)
 	ui.ts = NewTXSearch(gui)
 	gui.SetManager(ui, ui.fd, ui.ts)
 
@@ -54,10 +59,6 @@ func New() (*UI, error) {
 	gui.SelFgColor = gocui.ColorWhite
 
 	go func() {
-		c, err := client.New()
-		if err != nil {
-			log.Fatal(err)
-		}
 		if err := c.Want(); err != nil {
 			log.Fatal(err)
 		}

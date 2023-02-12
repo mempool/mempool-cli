@@ -1,13 +1,17 @@
 package main
 
 import (
+	"flag"
 	"log"
 
 	"github.com/mempool/mempool-cli/ui"
 )
 
 func main() {
-	gui, err := ui.New()
+	endpoint := flag.String("endpoint", "mempool.space", "The API endpoint")
+	flag.Parse()
+
+	gui, err := ui.New(*endpoint)
 	if err != nil {
 		log.Fatal(err)
 	}
