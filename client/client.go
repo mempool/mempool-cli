@@ -74,7 +74,7 @@ type Client struct {
 
 func New() (*Client, error) {
 	dialer := websocket.Dialer{}
-	conn, _, err := dialer.Dial("wss://mempool.space/ws", nil)
+	conn, _, err := dialer.Dial("wss://mempool.space/api/v1/ws", nil)
 	if err != nil {
 		return nil, err
 	}
