@@ -114,6 +114,12 @@ func (f Fees) Len() int           { return len(f) }
 func (f Fees) Less(i, j int) bool { return f[i].FPV < f[j].FPV }
 func (f Fees) Swap(i, j int)      { f[i], f[j] = f[j], f[i] }
 
+var httpClient = &http.Client{
+	Transport: &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+	},
+}
+
 func Get(ctx context.Context, path string, v interface{}) error {
 	req, err := http.NewRequest("GET", API_URL+path, nil)
 	if err != nil {
@@ -121,7 +127,7 @@ func Get(ctx context.Context, path string, v interface{}) error {
 	}
 	req = req.WithContext(ctx)
 
-	r, err := http.DefaultClient.Do(req)
+	r, err := httpClient.Do(req)
 	if err != nil {
 		return err
 	}
